@@ -1,0 +1,24 @@
+Python
+
+pycache/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+Database
+
+*.db
+
+Backups
+
+backups/
+
+Sensitive Credentials
+
+service_account.json
+
+IDEs
+
+.vscode/
+.idea/

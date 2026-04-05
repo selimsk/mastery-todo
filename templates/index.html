@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToDo Hosted on Raspi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 pb-24 font-sans">
+
+    <!-- Header -->
+    <header class="bg-white border-b sticky top-0 z-20 px-4 py-6 shadow-sm">
+        <div class="max-w-2xl mx-auto flex flex-col gap-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-xl font-bold flex items-center gap-2">
+                        <i data-lucide="trophy" class="text-yellow-500"></i> Mastery In Todo
+                    </h1>
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">{{ date }}</p>
+                </div>
+                <div class="flex bg-slate-100 p-1 rounded-xl overflow-x-auto gap-1">
+                    <a href="/" class="px-3 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap {{ 'bg-white shadow-sm text-blue-600' if view == 'today' else 'text-slate-500 hover:text-slate-700' }}">TODAY</a>
+                    <a href="/history" class="px-3 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap {{ 'bg-white shadow-sm text-blue-600' if view == 'history' else 'text-slate-500 hover:text-slate-700' }}">HISTORY</a>
+                    <a href="/report" class="px-3 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap {{ 'bg-white shadow-sm text-blue-600' if view == 'report' else 'text-slate-500 hover:text-slate-700' }}">REPORT</a>
+                    <a href="/settings" class="px-3 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap {{ 'bg-white shadow-sm text-blue-600' if view == 'settings' else 'text-slate-500 hover:text-slate-700' }}">SETTINGS</a>
+                </div>
+            </div>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                {% for message in messages %}
+                  <div class="bg-blue-600 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-lg flex justify-between items-center">
+                    <span>{{ message }}</span>
+                    <button onclick="this.parentElement.remove()" class="opacity-50 hover:opacity-100">&times;</button>
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+        </div>
+    </header>
+
+    <main class="max-w-2xl mx-auto px-4 mt-8">
+        {% if view == 'today' %}
+            <!-- Progress Card -->
+            <div class="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-xl mb-8 relative overflow-hidden">
+                <div class="relative z-10">
+                    <div class="flex justify-between items-end mb-4">
+                        <div>
+                            <h2 class="text-4xl font-black text-slate-800">{{ progress }}%</h2>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Today's Progress</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-bold text-blue-600">RPi Server Active</p>
+                        </div>
+                    </div>
+                    <div class="h-4 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-blue-600 transition-all duration-1000" style="width: {{ progress }}%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasks -->
+            <div class="space-y-3">
+                {% for task in routine %}
+                {% set active = check_active(task.time) %}
+                {% set done = completed.get(task.id, False) %}
+                <form action="/toggle/{{ task.id }}" method="POST">
+                    <button type="submit" class="w-full flex items-center gap-4 p-4 rounded-2xl border transition-all text-left
+                        {{ 'bg-slate-50 border-slate-100 opacity-60' if done else 
+                           'bg-white border-blue-500 shadow-lg scale-[1.01] ring-4 ring-blue-50' if active else 
+                           'bg-white border-slate-100 hover:border-slate-200' }}">
+                        <div class="p-3 rounded-xl border {{ 'text-blue-600 bg-blue-50' if 'German' in task.category else 'text-yellow-600 bg-yellow-50' if 'Python' in task.category else 'text-slate-500 bg-slate-50' }}">
+                            <i data-lucide="{{ 'book-open' if 'German' in task.category else 'code' if 'Python' in task.category else 'coffee' }}"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-center mb-0.5">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">{{ task.time }}</span>
+                                {% if active and not done %}
+                                    <span class="bg-blue-600 text-[8px] text-white font-black px-2 py-0.5 rounded-full animate-pulse tracking-widest">LIVE</span>
+                                {% endif %}
+                            </div>
+                            <h3 class="font-bold truncate {{ 'line-through text-slate-400' if done else 'text-slate-800' }}">{{ task.title }}</h3>
+                        </div>
+                        <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center {{ 'bg-green-500 border-green-500 text-white' if done else 'border-slate-200' }}">
+                            {% if done %}<i data-lucide="check-circle" size="18"></i>{% endif %}
+                        </div>
+                    </button>
+                </form>
+                {% endfor %}
+            </div>
+
+        {% elif view == 'history' %}
+            <!-- History View -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm mb-6">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <i data-lucide="bar-chart-3" class="text-blue-600"></i> Performance History
+                </h2>
+                <div class="space-y-4">
+                    {% for log in logs %}
+                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <div>
+                            <p class="font-bold text-slate-800">{{ log.date }}</p>
+                            <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Score: {{ log.score }}%</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full border-4 {{ 'border-green-100 text-green-600' if log.score > 80 else 'border-blue-100 text-blue-600' }} flex items-center justify-center font-black text-xs">
+                            {{ log.score }}%
+                        </div>
+                    </div>
+                    {% else %}
+                        <p class="text-center text-slate-400 py-8 italic font-medium">No records found. Start your journey today!</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+        {% elif view == 'report' %}
+            <!-- Performance Report -->
+            <div class="space-y-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <div class="flex items-center gap-2 text-blue-600 mb-2">
+                            <i data-lucide="activity" size="18"></i>
+                            <span class="text-[10px] font-black uppercase tracking-widest">Avg Mastery</span>
+                        </div>
+                        {% set total_score = namespace(value=0) %}
+                        {% for log in logs %}{% set total_score.value = total_score.value + log.score %}{% endfor %}
+                        {% set avg = (total_score.value / logs|length)|round|int if logs|length > 0 else 0 %}
+                        <h3 class="text-3xl font-black text-slate-800">{{ avg }}%</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <div class="flex items-center gap-2 text-green-600 mb-2">
+                            <i data-lucide="calendar-check" size="18"></i>
+                            <span class="text-[10px] font-black uppercase tracking-widest">Days Tracked</span>
+                        </div>
+                        <h3 class="text-3xl font-black text-slate-800">{{ logs|length }}</h3>
+                    </div>
+                </div>
+                <!-- Deep Analysis (Condensed) -->
+                <div class="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i data-lucide="zap" class="text-yellow-400"></i> Mastery Analysis</h2>
+                    <p class="text-xs text-slate-300 leading-relaxed opacity-80">
+                        Based on your {{ logs|length }} days of data, your consistency rating is 
+                        <strong>{% if avg >= 80 %}Exceptional{% elif avg >= 60 %}Solid{% else %}Developing{% endif %}</strong>.
+                    </p>
+                </div>
+            </div>
+
+        {% elif view == 'settings' %}
+            <!-- Settings & Backup View -->
+            <div class="space-y-6">
+                <!-- Routine Upload & Template -->
+                <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold flex items-center gap-2">
+                            <i data-lucide="calendar" class="text-blue-500"></i> Update Routine
+                        </h2>
+                        <a href="/settings/routine/template" class="text-xs text-blue-600 font-bold flex items-center gap-1 hover:underline">
+                            <i data-lucide="download" size="14"></i> Download Template
+                        </a>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-4">Download the template to see the current structure, edit it, and upload it below.</p>
+                    <form action="/settings/import" method="POST" enctype="multipart/form-data" class="space-y-4">
+                        <div class="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center relative hover:border-blue-400 transition-colors">
+                            <input type="file" name="file" accept=".json" class="absolute inset-0 opacity-0 cursor-pointer" onchange="this.form.submit()">
+                            <i data-lucide="upload" class="mx-auto mb-2 text-slate-400"></i>
+                            <p class="text-sm font-bold text-slate-600">Upload routine.json</p>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Backup & Restore -->
+                <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-lg font-bold flex items-center gap-2">
+                            <i data-lucide="database" class="text-slate-400"></i> Backup & Restore
+                        </h2>
+                        <a href="/settings/backup/manual" class="text-xs bg-blue-600 text-white px-4 py-2 rounded-xl font-bold hover:bg-blue-700 transition-colors">
+                            Backup Now
+                        </a>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Recent Backups</h3>
+                        <div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                            {% for backup in backups %}
+                            <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <span class="text-xs font-mono text-slate-600 truncate mr-4">{{ backup }}</span>
+                                <a href="/settings/backup/download/{{ backup }}" class="text-blue-600 hover:text-blue-800"><i data-lucide="download" size="16"></i></a>
+                            </div>
+                            {% else %}
+                            <p class="text-xs text-slate-400 italic">No backups found.</p>
+                            {% endfor %}
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-100">
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">System Restore</h3>
+                            <form action="/settings/restore" method="POST" enctype="multipart/form-data">
+                                <label class="flex items-center gap-3 p-3 bg-slate-100 rounded-xl cursor-pointer hover:bg-slate-200 transition-colors">
+                                    <i data-lucide="life-buoy" class="text-slate-500" size="18"></i>
+                                    <span class="text-xs font-bold text-slate-600">Upload .zip to Restore</span>
+                                    <input type="file" name="file" accept=".zip" class="hidden" onchange="this.form.submit()">
+                                </label>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </main>
+
+    <footer class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-2xl">
+        <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between border border-white/10">
+            <p class="text-xs font-medium italic">"Übung macht den Meister."</p>
+            <i data-lucide="book-open" class="text-blue-400 opacity-50"></i>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

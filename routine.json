@@ -1,0 +1,86 @@
+[
+    {
+        "id": "morning-routine",
+        "time": "05:00 - 05:30",
+        "title": "Wake Up & Morning Routine",
+        "category": "Health"
+    },
+    {
+        "id": "german-1",
+        "time": "05:30 - 08:00",
+        "title": "German (Deep Study)",
+        "category": "German"
+    },
+    {
+        "id": "python-1",
+        "time": "08:00 - 09:00",
+        "title": "Breakfast & Python (Light)",
+        "category": "Python"
+    },
+    {
+        "id": "german-flash",
+        "time": "09:00 - 09:30",
+        "title": "German Flashcards (Anki)",
+        "category": "German"
+    },
+    {
+        "id": "trade-work",
+        "time": "09:30 - 13:00",
+        "title": "Trade Related Work",
+        "category": "Trading"
+    },
+    {
+        "id": "lunch-listening",
+        "time": "13:00 - 14:00",
+        "title": "Lunch & German Listening",
+        "category": "German"
+    },
+    {
+        "id": "python-projects",
+        "time": "14:00 - 15:30",
+        "title": "Python Projects",
+        "category": "Python"
+    },
+    {
+        "id": "german-conv",
+        "time": "15:30 - 16:30",
+        "title": "German Conversation",
+        "category": "German"
+    },
+    {
+        "id": "walking",
+        "time": "16:30 - 17:30",
+        "title": "Walking (German Audio)",
+        "category": "Exercise"
+    },
+    {
+        "id": "refresh",
+        "time": "17:30 - 18:30",
+        "title": "Shower & Refresh",
+        "category": "Health"
+    },
+    {
+        "id": "german-python-mix",
+        "time": "18:30 - 20:30",
+        "title": "German & Python Mix",
+        "category": "Focus"
+    },
+    {
+        "id": "dinner",
+        "time": "20:30 - 21:30",
+        "title": "Dinner & Relaxation",
+        "category": "Health"
+    },
+    {
+        "id": "german-ent",
+        "time": "21:30 - 22:30",
+        "title": "German Entertainment",
+        "category": "German"
+    },
+    {
+        "id": "journal",
+        "time": "22:30 - 23:00",
+        "title": "Journaling & Planning",
+        "category": "Health"
+    }
+]
