@@ -26,7 +26,7 @@ Deployment: Systemd (Linux/Raspberry Pi OS)
 
 Clone the repository:
 
-git clone [https://github.com/selimsk/mastery-todo.git](https://github.com/YOUR_USERNAME/mastery-hub.git)
+git clone [https://github.com/selimsk/mastery-todo.git](https://github.com/selimsk/mastery-todo.git)
 
 cd mastery-todo
 
